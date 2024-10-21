@@ -49,8 +49,6 @@ Mesh3D::~Mesh3D(){
 void Mesh3D::readOBJ(const std::string& _fileName)
 {
 
-    std::cout << "[AREN][DEBUG] readOBJ ...\n";
-
     std::ifstream meshFile(_fileName.c_str());
 
     if (!meshFile.is_open())
@@ -72,12 +70,10 @@ void Mesh3D::readOBJ(const std::string& _fileName)
     //     if (initline.compare("v ") == 0){
     //         float a, b, c;
     //         sscanf(line.c_str(), "v %f %f %f", &a, &b, &c);
-    //         std::cout << "[AREN][DEBUG] v " << a << " " << b << " " << c << std::endl;
     //         this->addVector(Vector3f(a,b,c));
     //     } else if (initline.compare("f ") == 0) {
     //         unsigned int a, b, c;
     //         sscanf(line.c_str(), "f %d %d %d", &a, &b, &c);
-    //         std::cout << "[AREN][DEBUG] f " << a << " " << b << " " << c << std::endl;
     //         this->addTriangle(Triangle(a-1,b-1,c-1)); // OBJ indices start at 1
     //     } else {
     //         // Do nothing by now...
@@ -107,13 +103,10 @@ void Mesh3D::readOBJ(const std::string& _fileName)
             {
                 ss >> numVertices;
                 vtx_.reserve(numVertices);
-                // std::cout << "[AREN][DEBUG] Reserving numVertices " << numVertices << std::endl;
             }else if (label == "Faces:")
             {
                 ss >> numFaces;
                 tri_.reserve(numFaces);
-                // std::cout << "[AREN][DEBUG] line " << line << " Header:" << header << std::endl;
-                // std::cout << "[AREN][DEBUG] Reserving numFaces " << numFaces << std::endl;
             }
         }
         else if (header == "v")
@@ -121,9 +114,6 @@ void Mesh3D::readOBJ(const std::string& _fileName)
             float x, y, z;
             ss >> x >> y >> z;
             this->addVector(Vector3f(x, y, z));
-            // std::cout << "[AREN][DEBUG] line " << line << " Header:" << header << std::endl;
-            // std::cout << "[AREN][DEBUG] v " << x << " " << y << " " << z << std::endl;
-            // exit(1);
         }else if (header == "f")
         {
             // Face face;
@@ -148,13 +138,7 @@ void Mesh3D::readOBJ(const std::string& _fileName)
                 // if (vtIdx != -1) face.uvIndices.push_back(vtIdx - 1);
                 // if (vnIdx != -1) face.normalIndices.push_back(vnIdx - 1);
             }
-            // faces.push_back(face);
-            // std::cout << "[AREN][DEBUG] line " << line << " Header:" << header << std::endl;
-            // std::cout << "[AREN][DEBUG] f " << vertexIndices[0]
-            //             << " " << vertexIndices[1]
-            //             << " " << vertexIndices[2] << std::endl;
             this->addTriangle(Triangle(vertexIndices[0],vertexIndices[1],vertexIndices[2])); // OBJ indices start at 1
-            // exit(1);
         }
     }
 

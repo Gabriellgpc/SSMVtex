@@ -480,7 +480,6 @@ void Multitexturer::loadCameraInfo(){
     }
 
     if (bundler){
-        std::cout << "[AREN][DEBUG] Using BudlerFile reader!\n";
         readBundlerFile();
     } else {
         readCameraFile();
