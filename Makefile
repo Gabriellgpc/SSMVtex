@@ -8,12 +8,16 @@
 
 TARGET   = multitex
 
+# CFLAGS = `pkg-config --cflags opencv4`
+
 CXX      = g++
-CFLAGS   = -std=c++11 -Wall -I. -O2 -fopenmp
+CFLAGS   = -std=c++11 -Wall -I. -O2 -fopenmp `pkg-config --cflags opencv4` -g
 
 LINKER   = g++ -o
 LFLAGS   = -Wall -I. -lm -O2 -fopenmp
-LIBS = -lfreeimageplus -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_objdetect -lopencv_photo
+# LIBS = -lfreeimageplus -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_objdetect -lopencv_photo
+LIBS = -lfreeimage -lfreeimageplus `pkg-config --libs opencv4`
+# LIBS = `pkg-config --libs opencv4`
 
 SRCDIR   = src
 OBJDIR   = obj

@@ -46,45 +46,121 @@ Mesh3D::~Mesh3D(){
 
 }
 
-void Mesh3D::readOBJ(const std::string& _fileName) {
+void Mesh3D::readOBJ(const std::string& _fileName)
+{
+
+    std::cout << "[AREN][DEBUG] readOBJ ...\n";
 
     std::ifstream meshFile(_fileName.c_str());
 
-    if (meshFile.is_open()){
-
-        std::string line;
-        std::string initline;
-
-        // First avoid comments
-        do {
-            std::getline(meshFile, line);
-            initline = line.substr(0,2);
-        } while ((initline.compare("v ") != 0) && (initline.compare("f ") != 0));
-
-        while (!meshFile.eof()){
-            if (initline.compare("v ") == 0){
-                float a, b, c;
-                sscanf(line.c_str(), "v %f %f %f", &a, &b, &c);
-                this->addVector(Vector3f(a,b,c));
-            } else if (initline.compare("f ") == 0) {
-                unsigned int a, b, c;
-                sscanf(line.c_str(), "f %d %d %d", &a, &b, &c);
-                this->addTriangle(Triangle(a-1,b-1,c-1)); // OBJ indices start at 1
-            } else {
-                // Do nothing by now...
-            }
-            std::getline(meshFile, line);
-            initline = line.substr(0,2);
-        }
-
-    } else {
+    if (!meshFile.is_open())
+    {
         std::cerr << "Unable to read " << _fileName << " file!" << std::endl;
         exit(-1);
     }
 
+    // std::string line;
+    // std::string initline;
+    // First avoid comments
+    // do {
+    //     std::getline(meshFile, line);
+    //     initline = line.substr(0,2);
+    // } while ((initline.compare("v ") != 0) && (initline.compare("f ") != 0));
+
+    // while (!meshFile.eof())
+    // {
+    //     if (initline.compare("v ") == 0){
+    //         float a, b, c;
+    //         sscanf(line.c_str(), "v %f %f %f", &a, &b, &c);
+    //         std::cout << "[AREN][DEBUG] v " << a << " " << b << " " << c << std::endl;
+    //         this->addVector(Vector3f(a,b,c));
+    //     } else if (initline.compare("f ") == 0) {
+    //         unsigned int a, b, c;
+    //         sscanf(line.c_str(), "f %d %d %d", &a, &b, &c);
+    //         std::cout << "[AREN][DEBUG] f " << a << " " << b << " " << c << std::endl;
+    //         this->addTriangle(Triangle(a-1,b-1,c-1)); // OBJ indices start at 1
+    //     } else {
+    //         // Do nothing by now...
+    //     }
+    //     std::getline(meshFile, line);
+    //     initline = line.substr(0,2);
+    // }
+
+    std::string line;
+    int numVertices = 0;
+    int numFaces = 0;
+    while (std::getline(meshFile, line))
+    {
+        std::stringstream ss(line);
+        std::string header;
+        ss >> header;
+
+        // if a hint is present, saying the number of triangles and vertices
+        // we use it to reserve memory before head
+        // # Vertices: 3441334
+        // # Faces: 6879393
+        if(header == "#")
+        {
+            std::string label;
+            ss >> label;
+            if (label == "Vertices:")
+            {
+                ss >> numVertices;
+                vtx_.reserve(numVertices);
+                // std::cout << "[AREN][DEBUG] Reserving numVertices " << numVertices << std::endl;
+            }else if (label == "Faces:")
+            {
+                ss >> numFaces;
+                tri_.reserve(numFaces);
+                // std::cout << "[AREN][DEBUG] line " << line << " Header:" << header << std::endl;
+                // std::cout << "[AREN][DEBUG] Reserving numFaces " << numFaces << std::endl;
+            }
+        }
+        else if (header == "v")
+        {
+            float x, y, z;
+            ss >> x >> y >> z;
+            this->addVector(Vector3f(x, y, z));
+            // std::cout << "[AREN][DEBUG] line " << line << " Header:" << header << std::endl;
+            // std::cout << "[AREN][DEBUG] v " << x << " " << y << " " << z << std::endl;
+            // exit(1);
+        }else if (header == "f")
+        {
+            // Face face;
+            std::string vertexInfo;
+            std::vector<int> vertexIndices;
+            vertexIndices.reserve(3);
+            while (ss >> vertexInfo)
+            {
+                std::stringstream vs(vertexInfo);
+                std::string index;
+                int vIdx = -1, vtIdx = -1, vnIdx = -1;
+
+                std::getline(vs, index, '/');
+                vIdx = std::stoi(index);
+                // if (std::getline(vs, index, '/') && !index.empty()) {
+                //     vtIdx = std::stoi(index);
+                // }
+                // if (std::getline(vs, index, '/') && !index.empty()) {
+                //     vnIdx = std::stoi(index);
+                // }
+                vertexIndices.push_back(vIdx - 1);
+                // if (vtIdx != -1) face.uvIndices.push_back(vtIdx - 1);
+                // if (vnIdx != -1) face.normalIndices.push_back(vnIdx - 1);
+            }
+            // faces.push_back(face);
+            // std::cout << "[AREN][DEBUG] line " << line << " Header:" << header << std::endl;
+            // std::cout << "[AREN][DEBUG] f " << vertexIndices[0]
+            //             << " " << vertexIndices[1]
+            //             << " " << vertexIndices[2] << std::endl;
+            this->addTriangle(Triangle(vertexIndices[0],vertexIndices[1],vertexIndices[2])); // OBJ indices start at 1
+            // exit(1);
+        }
+    }
+
     std::cerr << "3D Mesh file " << _fileName << " read with " << nVtx_ << " vertices and " << nTri_ << " triangles." << std::endl;
     meshFile.close();
-}   
+}
 
 void Mesh3D::writeOBJ(const std::string& _fileName) {
 
@@ -405,14 +481,16 @@ void Mesh3D::writePLY(const std::string& _fileName, const std::string& _textureF
 
 
 
-void Mesh3D::addVector(const Vector3f& _vector){
+void Mesh3D::addVector(const Vector3f& _vector)
+{
     vtx_.push_back(_vector);
-    nVtx_++;
+    ++nVtx_;
 }
 
-void Mesh3D::addTriangle(const Triangle& _triangle){
+void Mesh3D::addTriangle(const Triangle& _triangle)
+{
     tri_.push_back(_triangle);
-    nTri_++;
+    ++nTri_;
 }
 
 // unsigned int Mesh3D::getNVtx() const{
@@ -435,7 +513,6 @@ Vector3f Mesh3D::getTriangleNormal(const Vector3f &_a, const Vector3f &_b, const
 
     Vector3f cp = (_b - _a).cross(_c - _a);
     return cp.normalized();
-
 }
 
 Vector3f Mesh3D::getTriangleNormal(unsigned int _index) const{

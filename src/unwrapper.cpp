@@ -32,9 +32,9 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
     // This value avoids zeros in some operations
     const float EPSILON = 1e-6;
 
-    const unsigned int nTri = _mesh.getNTri();
+    const size_t nTri = _mesh.getNTri();
 
-	std::vector<unsigned int> adj_count (nTri, 0); // we start with zero neighbors per triangle
+	std::vector<size_t> adj_count (nTri, 0); // we start with zero neighbors per triangle
 	std::vector<int> triNeighbor(nTri*3);
 
 	findTriangleNeighbors(_mesh, adj_count, triNeighbor);
@@ -55,7 +55,7 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
     // To keep track of the used triangle indices, we have uTri
     std::vector<int> uTri;
     std::vector<int>::iterator usit;
-    for (unsigned int i = 0; i < nTri; i++){
+    for (size_t i = 0; i < nTri; i++){
         uTri.push_back(i);
     }
 
@@ -173,7 +173,7 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
 
 
         // Step 2 : Add the three edges of the triangle to our Edge list
-        for (unsigned int c = 0; c < 3; c++){
+        for (size_t c = 0; c < 3; c++){
 
             Edge ed;
             ed.a = thistri.getIndex(c);
@@ -194,7 +194,7 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
                 break;
             }
 
-            for (unsigned int j = 0; j < adj_count[q]; j++){
+            for (size_t j = 0; j < adj_count[q]; j++){
                 const Triangle& t1 = _mesh.getTriangle(triNeighbor[3*q+j]);
                 if (adj_count[q] < 3){
                 }
@@ -296,7 +296,7 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
             // Candidate for ed1
 
             // I HAVE TO FIX THIS CRAZY NESTED CONDITIONS...
-            for (unsigned int j = 0; j < adj_count[e.Candidate]; j++){
+            for (size_t j = 0; j < adj_count[e.Candidate]; j++){
                 const Triangle& t1 = _mesh.getTriangle(triNeighbor[3*(e.Candidate)+j]);
                 if( ((t1.getIndex(0) == ed1.a)  &&  (t1.getIndex(1) == ed1.b)) ||
                     ((t1.getIndex(1) == ed1.a)  &&  (t1.getIndex(2) == ed1.b)) ||
@@ -315,7 +315,7 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
             }
 
             // Candidate for ed2
-            for (unsigned int j=0; j < adj_count[e.Candidate]; j++){
+            for (size_t j=0; j < adj_count[e.Candidate]; j++){
 
                 const Triangle& t1 = _mesh.getTriangle(triNeighbor[3*(e.Candidate)+j]);
                 if( ((t1.getIndex(0) == ed2.a)  &&  (t1.getIndex(1) == ed2.b)) ||
@@ -504,15 +504,15 @@ void Unwrapper::unwrapMesh(const Mesh3D& _mesh, std::vector<Chart>& _charts){
             int tri2del = itedge->Candidate;
             usit=uTri.begin();
 
-            unsigned int int2del = 0; // dumb init...
-            for (unsigned int cn= 0; cn != nTri; cn++){
+            size_t int2del = 0; // dumb init...
+            for (size_t cn= 0; cn != nTri; cn++){
                 if (uTri[cn] == tri2del){
                     int2del = cn;
                     break;
                 }
             }
 
-            for (unsigned int cn = 0; cn != nTri; cn++){
+            for (size_t cn = 0; cn != nTri; cn++){
                 if (cn != int2del){
                     usit++;
                 } else {
@@ -578,10 +578,10 @@ void Unwrapper::unwrapSplats(const Mesh3D& _mesh, std::vector<Chart>& _charts){
 
     std::cerr << "Analizing splats...";
 
-    const unsigned int nTri = _mesh.getNTri();
+    const size_t nTri = _mesh.getNTri();
 
     int unw_order = 0;
-    for (unsigned int i = 0; i < nTri; i++){
+    for (size_t i = 0; i < nTri; i++){
 
         const Triangle& thistri = _mesh.getTriangle(i);
         // The current chart is created
@@ -687,26 +687,28 @@ void Unwrapper::unwrapSplats(const Mesh3D& _mesh, std::vector<Chart>& _charts){
 
 // This method is too trivial and probably very time consuming,
 // something more efficient should be implemented.
-void Unwrapper::findTriangleNeighbors(const Mesh3D& _mesh, std::vector<unsigned int>& _adj_count, std::vector<int>& _triNeighbor){
-
-    const unsigned int nTri = _mesh.getNTri();
-    const unsigned int nVtx = _mesh.getNVtx();
+void Unwrapper::findTriangleNeighbors(const Mesh3D& _mesh, std::vector<size_t>& _adj_count, std::vector<int>& _triNeighbor)
+{
+    const size_t nTri = _mesh.getNTri();
+    const size_t nVtx = _mesh.getNVtx();
 
 	// which triangles contain each vertex
-    std::vector<int> *vtx2tri = new std::vector<int> [nVtx];
-    for (unsigned int i = 0; i < nTri; i++) {
+    std::vector<size_t> *vtx2tri = new std::vector<size_t> [nVtx];
+    #pragma omp parallel for
+    for (size_t i = 0; i < nTri; ++i)
+    {
     	const Triangle& thistri = _mesh.getTriangle(i);
-        for (unsigned int j = 0; j < 3; j++){
+        for (size_t j = 0; j < 3; ++j)
+        {
             vtx2tri[thistri.getIndex(j)].push_back(i);
         }
     }
 
-
-    for(unsigned int i = 0; i < nVtx; i++){
-        std::vector<int>::iterator ita = vtx2tri[i].begin();
+    for(size_t i = 0; i < nVtx; i++){
+        std::vector<size_t>::iterator ita = vtx2tri[i].begin();
 
         for(; ita != vtx2tri[i].end(); ++ita){
-            std::vector<int>::iterator itb = vtx2tri[i].begin();
+            std::vector<size_t>::iterator itb = vtx2tri[i].begin();
 
             for(; itb != vtx2tri[i].end(); ++itb){
 
@@ -782,7 +784,7 @@ void Unwrapper::findTriangleNeighbors(const Mesh3D& _mesh, std::vector<unsigned 
 
 
 bool Unwrapper::vectorIntersec(const Vector2f& _v1a, const Vector2f& _v1b, const Vector2f& _v2a, const Vector2f& _v2b)  {
-    
+
     const Vector2f v1 = _v1b - _v1a;
     const Vector2f v2 = _v2b - _v2a;
 

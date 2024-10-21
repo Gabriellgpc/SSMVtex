@@ -30,6 +30,9 @@
 
 using namespace Eigen;
 
+// typedef Eigen::Matrix<int64_t, 3, 1> Vector3li;
+// typedef Eigen::Matrix<int64_t, 3, 1> Vector3i;
+
 class Triangle{
 
  public:
@@ -68,7 +71,7 @@ class Triangle{
 
 private:
     Vector3i i_;
-
+    // Vector3li i_;
     Vector3d u_,v_; //double u[3], v[3]; // Texture coords of vertices (default 0)
 };
 

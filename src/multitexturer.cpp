@@ -480,6 +480,7 @@ void Multitexturer::loadCameraInfo(){
     }
 
     if (bundler){
+        std::cout << "[AREN][DEBUG] Using BudlerFile reader!\n";
         readBundlerFile();
     } else {
         readCameraFile();
@@ -1232,11 +1233,13 @@ bool Multitexturer::findFaceInImage(float& _face_min_x, float& _face_max_x, floa
     std::vector<cv::Rect> faces;
     cv::Mat gray;
     cv::Mat smallImg( cvRound (image.rows/scale), cvRound(image.cols/scale), CV_8UC1 );
-    cvtColor( image, gray, CV_BGR2GRAY );
+    // cvtColor( image, gray, CV_BGR2GRAY );
+    cvtColor( image, gray, cv::COLOR_BGR2GRAY );
     cv::resize( gray, smallImg, smallImg.size(), 0, 0, cv::INTER_LINEAR );
     cv::equalizeHist( smallImg, smallImg );
 
-    cascade.detectMultiScale( smallImg, faces, 1.1, 2, 0 | CV_HAAR_FIND_BIGGEST_OBJECT, cv::Size(30, 30) );
+    // cascade.detectMultiScale( smallImg, faces, 1.1, 2, 0 | CV_HAAR_FIND_BIGGEST_OBJECT, cv::Size(30, 30) );
+    cascade.detectMultiScale( smallImg, faces, 1.1, 2, 0 | cv::CASCADE_SCALE_IMAGE, cv::Size(30, 30) );
 
     if (faces.empty()){
         return false;
