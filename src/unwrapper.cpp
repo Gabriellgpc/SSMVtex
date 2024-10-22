@@ -694,7 +694,7 @@ void Unwrapper::findTriangleNeighbors(const Mesh3D& _mesh, std::vector<size_t>& 
 
 	// which triangles contain each vertex
     std::vector<size_t> *vtx2tri = new std::vector<size_t> [nVtx];
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (size_t i = 0; i < nTri; ++i)
     {
     	const Triangle& thistri = _mesh.getTriangle(i);
